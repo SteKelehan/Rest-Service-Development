@@ -18,6 +18,8 @@ nodes = []
 # Enter a file in which to save the key (/Users/you/.ssh/id_rsa): [Press enter]i
 # Enter passphrase (empty for no passphrase): [Type a passphrase]
 # Enter same passphrase again: [Type passphrase again]
+# keyContents = open(os.path.expanduser("~/.ssh/id_dsa.pub")).read()
+# agh.repos.addDeployKey('myrepo', 'Key Name', keyContents)
 #have to do error handling
 
 # this will start the node
@@ -27,7 +29,8 @@ class start(Resource):
         global tasks 
         
     def get(self):
-        #start master        
+        #start master
+        
         pass
     
     def post(self):
@@ -64,7 +67,6 @@ class ans(Resource):f
         total = []
     
     def get(self):
-                 
         pass
     
 
@@ -77,8 +79,13 @@ class task_setter():
     def __inti__(self, token):
         self.begin = False
         self.token = True
+        self.repo = self.get_repo()
+        self.repo_name = ""
+        
+        
 
     def get_repo(self):
+        repo = git.Repo("")
         pass
 
 
@@ -93,9 +100,21 @@ class task_setter():
 
     def reo_trees(self):
         #need list of commits
+        commits = requests.get(get_repo() + "/commits", params={'access_token' : self.token})
         #need list of all trees and file/ dirs in these trees
         #all of these gotten with tokens
-        #using sha key 
+        #using sha key -> get this from the commits
+        trees = []
+        commits_ = []
+        for commit in commits_:
+            sha = commit['sha']
+            commits.append(sha)
+            tree_url = get_repo() + "/trees/" + sha
+            tree = request.get()
+            
+
+
+
         pass
 
 
