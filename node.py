@@ -39,7 +39,9 @@ class Node():
 
     # gives answer back to task setter
     def respond(self, average, job):
-        return request.post(self.send_address, json = { 'URL' : job["URL"],'AVERAGE' : AVERAGE,'COMMIT' : job["COMMIT"],'PATH' : job["PATH"]}).json()
+        return request.post(self.send_address, json = { 
+            'URL' : job["URL"],'AVERAGE' : AVERAGE,
+            'COMMIT' : job["COMMIT"],'PATH' : job["PATH"]}).json()
 
     #returns the tokens
     def get_token(self):
@@ -53,12 +55,11 @@ class Node():
         files = './temp/{}.py'.format(job["COMMIT"])
         with open (files, 'w') as _file:
             _file.write(request.get(job["COMMIT"],params=payload, headers=headers).text)
-        return _files
+        return _file
 
     #calcs the complexity
     #http://radon.readthedocs.io/en/latest/api.html
     def calcuate_avrage(self, job):
-        token = get_token()
         f = get_files()
         #computing the complexioty
         #This will return a tuple in formate (line, args, kwargs)
@@ -76,7 +77,7 @@ class Node():
             #ask for a job
             job = self.find_job()
              # if it has work calcuate the avrage
-            average = self.compute(job)
+            average = self.calcuate_avrage(job)
             # when avrage is computeded send it back to task_setter
             send_back = self.respond(average, job)
             if "finished" in job:
@@ -84,7 +85,7 @@ class Node():
                 break
 
             
-if __name__ = '__main__':
+if __name__ == '__main__':
     node = Node()
     node.work()
     
