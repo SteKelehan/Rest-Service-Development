@@ -13,12 +13,11 @@ import json
 
 # This is going to calculate the avrage Complexity on the git hub commit!
 # The head worker that delagates the taskes will give each worker a github rebo URL
-# Used: https://developer.github.com/v3/repos/commits/ and https://developer.github.com/v3/git/trees/#get-a-tree-recursively and https://developer.github.com/v3/git/blobs/
 
 class Node():
     def __init__(self):
         self.job_address='http://localhost:5000/job'
-        self.send_address='http://localhost:5000/job'
+        self.send_address='http://localhost:5000/results'
         self.done=False
         self.token=self.get_token()
         self.configeration = Config(
@@ -65,11 +64,9 @@ class Node():
         #This will return a tuple in formate (line, args, kwargs)
         complexities = CCHarvester([f], self.configeration)
         for complexity in complexities:
-            line = complexity[0]
-            args = complexity[1] 
-            kwargs = complexity[2]
+            line, args, kwargs = complexity[0], complexity[1], complexity[2] 
             if type(line) == str:
-                if "Average complexity:" in line:
+                if "Average complexity: " in line:
                     return args[2]
     
     #do work until no more work to be done
@@ -90,7 +87,7 @@ class Node():
 if __name__ = '__main__':
     node = Node()
     node.work()
-    print("Work is complete!")
+    
 
     
 

@@ -8,56 +8,109 @@ import os
 import requests
 import json
 
+app = Flask(__name__)
+api = Api(app)
+
+nodes = []
+
+
+#ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+# Enter a file in which to save the key (/Users/you/.ssh/id_rsa): [Press enter]i
+# Enter passphrase (empty for no passphrase): [Type a passphrase]
+# Enter same passphrase again: [Type passphrase again]
+#have to do error handling
+
+# this will start the node
 class start(Resource):
     def __inti__(self):
-        pass
-    
-    def get(slef):
+        super(start, self).__init__()
+        global tasks 
+        
+    def get(self):
+        #start master        
         pass
     
     def post(self):
+        #
         pass
+api.add_resource(start, '/begin', endpoint = 'begin')
+
+
     
 
-
+# This will delagaet jobs if there are any to give
 class jobs(Resource):
     def __inti__(self):
-        pass
+        super(jobs, self).__init__()
+        global tasks
+
     
     def get(self):
+        #this will keep getting the next job to give to the node that is asking
+        #if master has begun go and get the next job
+        if tasks.begin == True:
+            break
         pass
     
     def post(self):
         pass
 
+api.add_resource(jobs, '/jobs', endpoint = 'jobs')
 
-class results(Resource):
+#This will resive the results and cal the overal avg
+class ans(Resource):f
     def __init__(self):
-        pass
+        super(results, self).__init__()
+        total = []
     
     def get(self):
-        pass
-    
-    def delete(self):
+                 
         pass
     
 
-class task_starter():
-    def __inti__(slef, token):
+api.add_resource(results, '/ans', endpoint = '/ans')
+
+    
+
+# This will control the main node .. task_setter
+class task_setter():
+    def __inti__(self, token):
+        self.begin = False
+        self.token = True
+
+    def get_repo(self):
         pass
+
 
     def run(self):
         pass
 
-    def deleteresults(self):
+    def cal_avg(self):
         pass
 
-    def 
+    def total(self):
+        pass
+
+    def reo_trees(self):
+        #need list of commits
+        #need list of all trees and file/ dirs in these trees
+        #all of these gotten with tokens
+        #using sha key 
+        pass
+
+
+
+    # def deleteresults(self):
+    #     pass
+
 
 
 
 
 if __name__ == '__main__':
+    tocken = ''
+    tasks = task_setter()
+    
     
 
 
