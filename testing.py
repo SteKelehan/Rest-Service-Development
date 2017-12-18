@@ -92,16 +92,16 @@ if __name__ == '__main__':
     # task = task_setter()
     # task.run()
     
-    print('im in the main')
-    test = testing()
-    print(test.repo)
-    test.get_trees()
-    print(sys.argv[1])
-    print(test.get_token())
-    for i in range(int(sys.argv[1])):
-        t = threading.Thread(name='i',target=test.run())
-        t.start()        
-    test.files()
+    # print('im in the main')
+    # test = testing()
+    # print(test.repo)
+    # test.get_trees()
+    # print(sys.argv[1])
+    # print(test.get_token())
+    # for i in range(int(sys.argv[1])):
+    #     t = threading.Thread(name='i',target=test.run())
+    #     t.start()        
+    # test.files()
 
-
+    print (os.system('python node.py'))
                 

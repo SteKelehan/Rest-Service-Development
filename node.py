@@ -1,24 +1,30 @@
 #!/usr/local/bin/python3
 
-from flask import Flask, jsonify, request, make_response, abort, url_for
+from flask import Flask, jsonify, request, make_response, url_for
 # from flask_restful import Api, Resource, reqparse, fields, marshal
 from radon.complexity import SCORE
 from radon.cli.harvest import CCHarvester
 from radon.cli import Config
-# import sys
-# import os
-# import requests
-# import json
-
+import time # TODO: add a sleeper to the node if there is no job to do
+import os
 # application/vnd.github.VERSION.raw -> retrive teh contents of the file
 # This is going to calculate the avrage Complexity on the git hub commit!
 # The head worker that delagates the taskes will give each worker a github rebo URL
 
+# What the file dose
+# Ask for Job
+# If job -> { Get file from git(url), Cal complexity, Respond to ans -> reslut, Look for Job}
+# If no job -> {responce will == sleep, sleep, Ask for job again}
+# If jobs done -> {responce will == done , kill worker}
+
 
 class Node():
-    def __init__(self):
+    def __init__(self, gitname, repo):
         self.job_address = 'http://localhost:5000/job'
         self.send_address = 'http://localhost:5000/ans'
+        self.name = gitname
+        self.repo = repo
+        self.rurl = "https://api.github.com/" + str(self.name) + str(self.repo)
         self.done = False
         self.token = self.get_token()
         self.configeration = Config(
@@ -47,25 +53,23 @@ class Node():
                 'COMMIT': job["COMMIT"],
                 'PATH': job["PATH"]
             }).json()
-
     # returns the token
     def get_token(self):
-        with open("Tokens", "r") as _file:
+        with open("Tokens.txt", "r") as _file:
             return _file.read().split()[0]
 
     # gets files
+   
     def get_file(self, job):
         payload = {'access_token': self.token}
-        headers = {'Accept': 'application/vnd.github.v3.raw'}
-        # creates a file with the name of the commit
-        files = './temp/{}.py'.format(job["COMMIT"])
-        with open(files, 'w') as _file:
-            _file.write(
-                request.get(job["COMMIT"], params=payload,
-                            headers=headers).text)
-        return _file
+        self.start = "https://raw.githubusercontent.com"
+        self.path = job['PATH']
+        self.sha = job['COMMIT']
+        self.url = self.start + self.name + self.repo + self.sha
+        return request.get(self.url, params=payload).text
 
     # calcs the complexity
+    # might be using a diffrent method!
     # http://radon.readthedocs.io/en/latest/api.html
     def calcuate_avrage(self, job):
         f = self.get_file(job)
@@ -78,21 +82,27 @@ class Node():
                 if "Average complexity: " in line:
                     return args[2]
 
+     def calc_test(self, file_):
+        complex_ = mi_parameters(file_)
+        return complex_[1]
+
     # do work until no more work to be done
     def work(self):
         # if does not have work get work
-        while self.done == False:
+        while self.done is not False:
             # ask for a job
+            # TODO: if the response says no job -> sleep
             job = self.find_job()
+            if "finished" in job:
+                self.done = True
+                break
             # if it has work calcuate the avrage
             average = self.calcuate_avrage(job)
             # when avrage is computeded send it back to task_setter
             self.respond(average, job)
-            if "finished" in job:
-                self.done = True
-                break
 
 
 if __name__ == '__main__':
-    node = Node()
+    print("Node has started up!")
+    node = Node(sys.argv[1], sys.argv[2])
     node.work()

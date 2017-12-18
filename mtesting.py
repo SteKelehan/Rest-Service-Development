@@ -14,22 +14,13 @@ app = Flask(__name__)
 api = Api(app)
 
 class testing():
+    ###################### WORKING! ###################### 
     def __init__(self):
         self.begin = True
         self.repo = "https://api.github.com/repos/SteKelehan/testing"
         global task 
-        self.token = "ae14a11eaefa3959d3aa11e4cc4abc5833dee4e3"
+        self.token = self.get_token()
         self.commits, self.trees = self.get_trees()
-
-    # def run(self):
-    #     print("waiting to start")
-    #     while self.begin == False:
-    #         if self.begin == True:
-    #             print("Starting")
-    #             # self.task.run()
-    #             return
-
-
 
     def get_token(self):
         with open("Tokens.txt", "r") as _file:
@@ -44,54 +35,60 @@ class testing():
             sha = commit['sha']
             commits_.append(sha)
             tree_url = self.repo + "/git/trees/" + str(sha)
-            # print(tree_url)
-            tree = requests.get(tree_url, params={"access_tocken":str(self.token),"recursive": 1}).json()
+            tree = requests.get(tree_url, params={"access_token":str(self.token),"recursive": 1}).json()
             # print(tree)
             if 'tree' in tree:
                 new = []
                 for info in tree['tree']:
                     new.append(info)
-            trees[sha] = new
-        print("trees: ")
-        print(trees)
-        print("Commits: ")
-        print(commits_)
+                trees[sha] = new
+            else:
+                print("I would say you went ober the API rate limit!")
         return trees, commits_
 
+
     def get_job(self):
-        trees, commits = self.get_trees()
-        commit = commits[0] #sha commmit
-        tree = trees[commit]  #list of files
-        dets = tree[0]  # details about that file
-        return dets['url'], dets['path'], commit
+        return 
+
+
+    def test_job(self):
+        return "someurl", "53fba9a79b063f636ece5ee0545986d3d3bc0716", "test.py"
 
 
         
-    # def files(self):
-    #     self.trees, self.commits = self.get_trees()    
-    #     for sha in self.trees:
-    #         print ("sha:", sha)
-    #         for file_details in self.trees[sha]:
-    #             print ("\tfile: {} ({})".format(file_details["path"], file_details["url"]))
-
 
 class jobs(Resource):
     def __inti__(self):
+        self.req = reqparse.RequestParser()
+        self.req.add_argument('URL', type=str, location='json')
+        self.req.add_argument('AVERAGE', type=str, location='json')
+        self.req.add_argument('COMMIT', type=str, location='json')
+        self.req.add_argument('PATH', type=str, location='json')
+
         super(jobs, self).__init__()
-        self.begin = True
         global test
-        test = self.test
-    
+
+    # this will give the task 
     def get(self):
-        # check if any commits left to be sent
-        # if so check to see if there are 
-        pass
-    
+        job_, _file, _commit = test.test_job()
+        if job_ == 'finsihed':
+            return {'URL' : 'finsihed'}
+        return {'URL': job_, 'COMMIT': _commit, 'PATH': _file}
+
+    # This will resive the ans 
     def post(self):
-        job_, _file, _commit = test.get_job()
-        return {'url': job_, 'commit':_commit, 'path': _file}
- 
-api.add_resource(jobs, '/jobs', endpoint = 'jobs')
+        # get info form ans
+        # requ = request.json() # this is what the worker sent the master
+        # r = request
+        # print(r)A
+        args  = self.req.parse_args()
+        must_haves = ['URL', 'AVERAGE', 'COMMIT', 'PATH']
+        ans_ = []
+        for items in must_haves:
+            ans_.append(args[items])
+        test.results(ans_)
+
+api.add_resource(jobs, '/jobs', endpoint='jobs')
 
 
 
@@ -102,16 +99,27 @@ if __name__ == '__main__':
     
     # print('im in the main')
     test = testing()
+    Job = jobs()
+    Job.get()
     # print(test.repo)
-    test.get_trees()
+    # test.get_trees()
     # print(sys.argv[1])
     # print(test.get_token())
     # for i in range(int(sys.argv[1])):
         # t = threading.Thread(name='i',target=test.run())
         # t.start()        
     # test.files()
-    Job = jobs()
-    Job.post()
+
+    # Job = jobs()
+    # Job.post()
+    # print(test.commits)
+    # print(test.trees)
+    # print(test.commits[0])A
+
+    # Job.test_post()
+
+    
+app.run(host='0.0.0.0', debug=True, port=5000)
 
 
                 
