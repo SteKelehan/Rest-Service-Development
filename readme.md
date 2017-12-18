@@ -1,7 +1,7 @@
 # Internet App Cyclomatic Complexity
 
-Student Name: Stephen Keleham
-Student Number: 14316006
+Student Name: Stephen Kelehan/n
+Student Number: 14316006/n
 
 ## Project
 
@@ -10,30 +10,30 @@ This project was to construct a REST serves system, that would compute the code 
 
 ## Running the code  
 
-The project was written in python. The repo contains 2 python files "task_master.py" and "node.py" these will be exicuting the caculation on the given repo. 
-The repo also has a file called "Token.txt" this is where the git access token should be stored. 
-There is a "makeenv.sh". This is the file that will install the nessasary python plug-ins.
+The project was written in python. The repo contains 2 python files "task_master.py" and "node.py" these will be exicuting the caculation on the given repo. /n 
+The repo also has a file called "Token.txt" this is where the git access token should be stored. /n
+There is a "makeenv.sh". This is the file that will install the nessasary python plug-ins./n
 Finally there is a scrip called "setup.sh" that will take 3 comandline args 1.name of gitname, 2. name of repo and 3. the amout of nodes you would like to run on the repo.
 
 
 ## Code
 
-There is two python scrips.
+There are two python scrips:
 
 ### task_setter.py
 
-The files used a RESTful api to communicated with one another. The "task_maser.py" pulled the appropeate infomation from the choosen gitgub repo. It did this using the github API. The file is given asscess to the repo via github access tokens witch are stored ona "Token.txt" file.
-With this the scriped gets the commits and the trees with in every commit from the repo. It then processes this information and and read ready to give jobs to nodes requesting a job.
-The nodes are then given a file each from the "task_setter.py". The resutls are then returned to this file and stored in order to caculate the avarage CC (Code Complexity). 
-When all the task (this being the CC caculated on each file) are completed the "task_setter.py" tells the nodes when they requesta new job. 
+The files used a RESTful api to communicated with one another. The "task_maser.py" pulled the appropeate infomation from the choosen gitgub repo. It did this using the github API. The file is given asscess to the repo via github access tokens witch are stored ona "Token.txt" file./n
+With this the scriped gets the commits and the trees with in every commit from the repo. It then processes this information and and read ready to give jobs to nodes requesting a job./n
+The nodes are then given a file each from the "task_setter.py". The resutls are then returned to this file and stored in order to caculate the avarage CC (Code Complexity). /n
+When all the task (this being the CC caculated on each file) are completed the "task_setter.py" tells the nodes when they requesta new job. /n
 Finally the results are writen to a file called "Results.txt"
 
 ### node.py
 
-This file is a worker that calls on the "task_setter.py" to do work. It gets a responce.
-It reseives the commit identifier "sha", the file name "path", and the status "status" this allows the node to pull the raw file contence form the githb API.
-It then caculates the code complexity of the given file using Radon. 
-Finally the node returns the information to the "task_setter.py" and asks for anouther task.
+This file is a worker that calls on the "task_setter.py" to do work. It gets a responce./n
+It reseives the commit identifier "sha", the file name "path", and the status "status" this allows the node to pull the raw file contence form the githb API./n
+It then caculates the code complexity of the given file using Radon. /n
+Finally the node returns the information to the "task_setter.py" and asks for anouther task./n
 
 ## Built With
 
