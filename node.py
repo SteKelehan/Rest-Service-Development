@@ -20,91 +20,80 @@ import os
 
 
 class Node():
-    def __init__(self, gitname, repo):
-        self.job_address = 'http://localhost:5000/job'
-        self.send_address = 'http://localhost:5000/ans'
+    def __init__(self, repo, gitname):
+        # inits vars
         self.name = gitname
         self.repo = repo
         self.rurl = "https://api.github.com/" + str(self.name) + str(self.repo)
-        self.done = False
-        self.token = self.get_token()
-        self.configeration = Config(
-            exclude="",
-            ignore="",
-            order=SCORE,
-            no_assert=True,
-            show_closure=False,
-            min='A',
-            max='F',
-        )
+        # Gets token to acess git from file
+        self.token = self.get_token() 
+        # This is the rest address tp send the requests to 
+        self.job_address = 'http://localhost:5050/jobs'
 
-    # Asks for job of task_setter
-    def find_job(self):
-        # Ask for a job this will return a json dic with URL, Commitment and the path
-        job = request.get(self.job_address).json()
-        return job
+    # This will give the worker a job
+    def get_job(self):
+        return requests.get(self.job_address).json()
 
-    # gives answer back to task setter
-    def respond(self, average, job):
-        return request.post(
-            self.send_address,
-            json={
-                'URL': job["URL"],
-                'AVERAGE': average,
-                'COMMIT': job["COMMIT"],
-                'PATH': job["PATH"]
-            }).json()
-    # returns the token
+    # This will retive the token form the text file
     def get_token(self):
         with open("Tokens.txt", "r") as _file:
             return _file.read().split()[0]
 
-    # gets files
-   
-    def get_file(self, job):
+    # This function send the CC back to the task setter
+    def give_ans(self, job, avg):
+        # print(type(job))
+        pprint(job)
+        print(avg)
+        # print(type(avg))
+        return requests.post(self.job_address, json={'STATUS':job['STATUS'], 'AVERAGE':avg, 'COMMIT':job['COMMIT'], 'PATH':job['PATH']}).json()
+
+    # This function pull the text info form git api
+    def get_file(self, job):o
+        # allows you access
         payload = {'access_token': self.token}
-        self.start = "https://raw.githubusercontent.com"
+        # This is where the raw data in a file is on the git api
+        self.start = "https://raw.githubusercontent.com/"
         self.path = job['PATH']
         self.sha = job['COMMIT']
-        self.url = self.start + self.name + self.repo + self.sha
-        return request.get(self.url, params=payload).text
+        # give the info from the git repo this will genorate the url needed to extract the file data
+        self.url = self.start + self.name + '/' + self.repo + '/' + self.sha + '/' + self.path
+        # Returns the data in .txt 
+        return requests.get(self.url, params=payload).text
 
-    # calcs the complexity
-    # might be using a diffrent method!
-    # http://radon.readthedocs.io/en/latest/api.html
-    def calcuate_avrage(self, job):
-        f = self.get_file(job)
-        # computing the complexioty
-        # This will return a tuple in formate (line, args, kwargs)
-        complexities = CCHarvester([f], self.configeration)
-        for complexity in complexities:
-            line, args, kwargs = complexity[0], complexity[1], complexity[2]
-            if type(line) == str:
-                if "Average complexity: " in line:
-                    return args[2]
-
-     def calc_test(self, file_):
+  
+    # This use radon to calc CC on file
+    def calc_test(self, job):
+        file_ = self.get_file(job)
+        if "readme" in job["PATH"]:
+            return 0
         complex_ = mi_parameters(file_)
+        print (complex_[1])
         return complex_[1]
 
-    # do work until no more work to be done
     def work(self):
+        self.done = False
         # if does not have work get work
-        while self.done is not False:
+        while self.done is False:
             # ask for a job
             # TODO: if the response says no job -> sleep
-            job = self.find_job()
-            if "finished" in job:
+            print("Getting job")
+            job = self.get_job()
+            print(job)
+            # print("get to this point?")
+            if "finished" in job["STATUS"]:
                 self.done = True
                 break
-            if job is None:
-                sleep(0.5)
-            else:
-                # if it has work calcuate the avrage
-                average = self.calcuate_avrage(job)
-                # when avrage is computeded send it back to task_setter
-                self.respond(average, job)
-
+            if None in job:
+                print("Task Setter not activated yet")
+                sleep(.5)
+            # if it has work calcuate the avrage
+            # print("cacl avg")
+            average = self.calc_test(job)
+            # when avrage is computeded send it back to task_setter
+            print("sending avg back")
+            print(type(job))
+            pprint(job)
+            self.give_ans(job, average)
 
 if __name__ == '__main__':
     print("Node has started up!")
