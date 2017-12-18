@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+# This check the number of access has not gone over your daily lim!
 import requests
 import json
 
