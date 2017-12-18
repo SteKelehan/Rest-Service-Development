@@ -1,14 +1,13 @@
 #!/usr/local/bin/python
+# -*- coding: utf-8 -*-
 
-from flask import Flask, jsonify, request, make_response, abort, url_for
+from flask import Flask, jsonify, request, make_response, url_for
 from flask_restful import Api, Resource, reqparse, fields, marshal
 
-import sys
-import os
 import requests
-import json
-import pprint
 import threading
+import json
+from collections import defaultdict
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,7 +19,12 @@ class testing():
         self.repo = "https://api.github.com/repos/SteKelehan/testing"
         global task 
         self.token = self.get_token()
-        self.commits, self.trees = self.get_trees()
+        self.trees, self.commits= self.get_trees()
+        self.paths = [] # put in init 
+        self.commit_index = len(self.commits) - 1
+        self.next_com = True
+        self.path_index = 0
+        self.resultsdic = {}
 
     def get_token(self):
         with open("Tokens.txt", "r") as _file:
@@ -37,55 +41,92 @@ class testing():
             tree_url = self.repo + "/git/trees/" + str(sha)
             tree = requests.get(tree_url, params={"access_token":str(self.token),"recursive": 1}).json()
             # print(tree)
+            self.count = 0
             if 'tree' in tree:
                 new = []
                 for info in tree['tree']:
-                    new.append(info)
+                    if info['type'] == 'blob':
+                        new.append(info)
+                        self.count += 1
                 trees[sha] = new
             else:
                 print("I would say you went ober the API rate limit!")
+            print ("Count: ", self.count)
+        print(len(trees))
+        print(len(trees.keys()))
         return trees, commits_
+    
+    def results(self, responce):
+        self.com = responce["COMMIT"]
+        self.ans = responce["AVERAGE"]
+        self.resultsdic[self.com].extend([self.ans])
+        
 
+    def print_to_file(self):
+        #clacs the avg and puts in file
+        new = {k: sum(v)/len(v) for k, v in dic.items() if len(v) > 0}
+        with open("Results.txt", "w") as f:
+            f.write(json.dumps(new))
 
     def get_job(self):
-        return 
+        # in each commit calculate the complexit -> avg
+        # in each commit there is trees  
+        # in each commit send the file to a worker to calc complex
+        # when commit avg complete send to file
 
-
-    def test_job(self):
-        return "someurl", "53fba9a79b063f636ece5ee0545986d3d3bc0716", "test.py"
+        if self.commit_index < 0:
+            print("Finsihed Repo")
+            return "finished", None, None
+        else:
+            self.curr_commit = self.commits[self.commit_index]
+            if self.path_index  == len(self.paths):
+                self.commit_index -= 1
+                self.next_com = True
+            if self.next_com is True:
+                print("Starting Tree")
+                self.paths = []
+                # print("Paths", self.paths)
+                self.path_index = 0
+                for item in self.trees[self.curr_commit]:
+                    self.paths.append(item['path'])
+                # print("Paths now: ", self.paths)
+                self.next_com = False
+            
+            commit = self.curr_commit
+            url = "dont know if i need it yet!"
+            # print("Paths index: ", self.path_index)
+            path = self.paths[self.path_index]
+            self.path_index += 1
+            # print("Lenght of paths", len(self.paths))
+            # print c("STATUS: ", url)
+            print("COMMIT: ", commit)
+            print("PATH", path)
+        return url, commit, path 
 
 
         
 
 class jobs(Resource):
     def __inti__(self):
-        self.req = reqparse.RequestParser()
-        self.req.add_argument('URL', type=str, location='json')
-        self.req.add_argument('AVERAGE', type=str, location='json')
-        self.req.add_argument('COMMIT', type=str, location='json')
-        self.req.add_argument('PATH', type=str, location='json')
-
         super(jobs, self).__init__()
         global test
 
     # this will give the task 
     def get(self):
-        job_, _file, _commit = test.test_job()
+        print('Getting a Job!')
+        job_, _commit, _file = test.get_job()
         if job_ == 'finsihed':
-            return {'URL' : 'finsihed'}
-        return {'URL': job_, 'COMMIT': _commit, 'PATH': _file}
+            return {'STATUS' : 'finsihed'}.json()
+        return {'STATUS': job_, 'COMMIT': _commit, 'PATH': _file}
 
     # This will resive the ans 
     def post(self):
-        # get info form ans
-        # requ = request.json() # this is what the worker sent the master
-        # r = request
-        # print(r)A
-        args  = self.req.parse_args()
-        must_haves = ['URL', 'AVERAGE', 'COMMIT', 'PATH']
+        print("Resiving a Job")
+        r = request.json
+        must_haves = ['STATUS', 'AVERAGE', 'COMMIT', 'PATH']
         ans_ = []
         for items in must_haves:
-            ans_.append(args[items])
+            ans_.append(r[items])
         test.results(ans_)
 
 api.add_resource(jobs, '/jobs', endpoint='jobs')
@@ -94,32 +135,12 @@ api.add_resource(jobs, '/jobs', endpoint='jobs')
 
 
 if __name__ == '__main__':
-    # task = task_setter()
-    # task.run()
-    
-    # print('im in the main')
     test = testing()
-    Job = jobs()
-    Job.get()
-    # print(test.repo)
-    # test.get_trees()
-    # print(sys.argv[1])
-    # print(test.get_token())
-    # for i in range(int(sys.argv[1])):
-        # t = threading.Thread(name='i',target=test.run())
-        # t.start()        
-    # test.files()
-
-    # Job = jobs()
-    # Job.post()
+    # print("commtis")
     # print(test.commits)
+    # print("trees:")
     # print(test.trees)
-    # print(test.commits[0])A
-
-    # Job.test_post()
-
-    
-app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5050)
 
 
                 

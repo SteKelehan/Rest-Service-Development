@@ -1,4 +1,4 @@
-#!usr/local/bin/python
+#!/usr/local/bin/python
 
 from flask import Flask, jsonify, request, make_response, abort, url_for
 from flask_restful import Api, Resource, reqparse, fields, marshal
@@ -62,6 +62,7 @@ class jobs(Resource):
             ans_.append(requ[items])
         test.results(ans_)
 
+
 api.add_resource(jobs, '/jobs', endpoint='jobs')
 
 
@@ -109,8 +110,7 @@ class task_setter():
     # TODO: need to thread this!
     def run(self):
         # start up a job class 
-        Job = jobs()
-
+        
 
 
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     
 
 
-    app.run(host='0.0.0.0', debug=True, port=5000)
+app.run(host='0.0.0.0', debug=True, port=5050)
 
     
     

@@ -1,11 +1,12 @@
 #!/usr/local/bin/python3
+# -*- coding: utf-8 -*-
 
 from flask import Flask, jsonify, request, make_response, url_for
 # from flask_restful import Api, Resource, reqparse, fields, marshal
 from radon.complexity import SCORE
 from radon.cli.harvest import CCHarvester
 from radon.cli import Config
-import time # TODO: add a sleeper to the node if there is no job to do
+import time from sleep # TODO: add a sleeper to the node if there is no job to do
 import os
 # application/vnd.github.VERSION.raw -> retrive teh contents of the file
 # This is going to calculate the avrage Complexity on the git hub commit!
@@ -96,10 +97,13 @@ class Node():
             if "finished" in job:
                 self.done = True
                 break
-            # if it has work calcuate the avrage
-            average = self.calcuate_avrage(job)
-            # when avrage is computeded send it back to task_setter
-            self.respond(average, job)
+            if job is None:
+                sleep(0.5)
+            else:
+                # if it has work calcuate the avrage
+                average = self.calcuate_avrage(job)
+                # when avrage is computeded send it back to task_setter
+                self.respond(average, job)
 
 
 if __name__ == '__main__':

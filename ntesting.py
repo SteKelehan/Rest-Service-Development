@@ -13,10 +13,9 @@ from radon.complexity import SCORE, cc_rank, cc_visit
 from radon.cli.harvest import CCHarvester
 from radon.metrics import mi_parameters
 from radon.cli import Config
+from time import sleep
+from pprint import pprint
 
-
-app = Flask(__name__)
-api = Api(app)
 
 
 class ntesting():
@@ -26,25 +25,22 @@ class ntesting():
         self.repo = repo
         self.rurl = "https://api.github.com/" + str(self.name) + str(self.repo)
         self.token = self.get_token() 
-        self.configeration = Config(
-            exclude="",
-            ignore="",
-            order=SCORE,
-            no_assert=True,
-            average=True,
-            total_average=True,
-            show_closure=False,
-            min='A',
-            max='F',
-        )
-        self.job_address = 'http://localhost:5000/job'
+        self.job_address = 'http://localhost:5050/jobs'
 
     def get_job(self):
-        return request.get(self.job_address).json()
+        # print("so im in here?")
+        return requests.get(self.job_address).json()
 
     def get_token(self):
         with open("Tokens.txt", "r") as _file:
             return _file.read().split()[0]
+
+    def give_ans(self, job, avg):
+        # print(type(job))
+        pprint(job)
+        print(avg)
+        # print(type(avg))
+        return requests.post(self.job_address, json={'STATUS':job['STATUS'], 'AVERAGE':avg, 'COMMIT':job['COMMIT'], 'PATH':job['PATH']}).json()
 
 
 # gets files
@@ -55,70 +51,45 @@ class ntesting():
         self.path = job['PATH']
         self.sha = job['COMMIT']
         self.url = self.start + self.name + '/' + self.repo + '/' + self.sha + '/' + self.path
-        return request.get(self.url, params=payload).text
+        # print('url')
+        # print(self.url)
+        return requests.get(self.url, params=payload).text
 
-    def calcuate_avrage(self):
-        # f = self.get_file(job)
-        url = "https://raw.githubusercontent.com/SteKelehan/testing/53fba9a79b063f636ece5ee0545986d3d3bc0716/test.py"
-        f = requests.get(url, params={"access_token":str(test.token)}).text
-        # computing the complexioty
-        # This will return a tuple in formate (line, args, kwargs)
-        results = CCHarvester([f], self.configeration).to_terminal()
-        # extract avg from results
-        for result in results:
-            line, args, kwargs = result[0], result[1], result[2]
-            if type(line) == str:
-                if "Average complexity:" in line:
-                    avg = args[2]
-                    print ("AVG", avg)
-                    return avg
+  
 
-
-    def calc_test(self):
-        file_ = self.get_file()
+    def calc_test(self, job):
+        file_ = self.get_file(job)
+        if "readme" in job["PATH"]:
+            return 0
         complex_ = mi_parameters(file_)
+        print (complex_[1])
         return complex_[1]
 
-
-   
     def work(self):
         self.done = False
         # if does not have work get work
-        while self.done is not False:
+        while self.done is False:
             # ask for a job
             # TODO: if the response says no job -> sleep
+            print("Getting job")
             job = self.get_job()
-            if "finished" in job:
+            print(job)
+            # print("get to this point?")
+            if "finished" in job["STATUS"]:
                 self.done = True
                 break
+            if None in job:
+                print("Task Setter not activated yet")
+                sleep(5)
             # if it has work calcuate the avrage
+            # print("cacl avg")
             average = self.calc_test(job)
             # when avrage is computeded send it back to task_setter
-            self.respond(average, job)
+            print("sending avg back")
+            print(type(job))
+            pprint(job)
+            self.give_ans(job, average)
 
 if __name__ == '__main__':
-    test = ntesting("SteKelehan", "testing")
+    test = ntesting("testing", "SteKelehan")
     test.work()
-    # job = {"url":"https://api.github.com/repos/SteKelehan/testing/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", 
-    #         "commit" : 1 , 
-    #         "Path": "test.py"}
-    # job = test.get_job()
-    # print(request.get_file(job))    # print(test.calcuate_avrage(job))
-    # with open("node.py","r") as f:
-        # data = f.read()
-    # print(data)
-
-    # url = "https://raw.githubusercontent.com/SteKelehan/testing/53fba9a79b063f636ece5ee0545986d3d3bc0716/test.py"
-    # x = requests.get(url, params={"access_token":str(test.token)}).text
-    # print (x)
-    # y = test.calc_test(x)
-    # print("y: ", y)
-    # z = test.calcuate_avrage()
-    # print(z)
-    # print(test.get_file(url))
-    # result = test.calc_test(data)  
-    # result = test.calc_test(data)  
-    # print("Result: ", result)
-    # test.get_job()
-    # print (test.calc_test())
-
